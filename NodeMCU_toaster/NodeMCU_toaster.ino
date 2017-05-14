@@ -1,22 +1,18 @@
-#include <Regexp.h>
+#include <Servo.h>
 
-/*******************************************************************
- *  this is a basic example how to program a Telegram Bot          *
- *  using TelegramBOT library on ESP8266                           *
- *                                                                 *
- *  Open a conversation with the bot, it will echo your messages   *
- *  https://web.telegram.org/#/im?p=@EchoBot_bot                   *                                                                 
- *                                                                 *
- *  written by Giacarlo Bacchio                                    *
- *******************************************************************/
- 
-#include <LiquidCrystal.h>
-#include <ESP8266WiFi.h>
 #include <ESP8266HTTPClient.h>
+#include <ESP8266WiFi.h>
+#include <ESP8266TelegramBOT.h>
 
-// Initialize Wifi connection to the router
-const char ssid[] = "Singtel7002-FBEF";
-const char password[] = "0013499375";
+#include <DNSServer.h>         // Local DNS Server used for redirecting all requests to the configuration portal
+#include <ESP8266WebServer.h>    // Local WebServer used to serve the configuration portal
+#include <WiFiManager.h>         // https://github.com/tzapu/WiFiManager WiFi Configuration Magic
+
+const int toastDegree = 0;
+const int untoastDegree = 180;
+
+WiFiManager wifiManager;
+Servo myservo;
 
 void setup() {
 	pinMode(D7, OUTPUT);
@@ -24,8 +20,8 @@ void setup() {
 	delay(3000);
 
 	// attempt to connect to Wifi network:
-	Serial.print("Connecting Wifi: ");
-	Serial.println(ssid);
+    Serial.print("Connecting Wifi: ");
+    wifiManager.autoConnect("AutoConnectAP");
 	
 	Serial.println("");
 	Serial.println("WiFi connected");
