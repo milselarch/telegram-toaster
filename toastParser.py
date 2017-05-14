@@ -1,17 +1,8 @@
 from telegram.ext import Updater
 from telegram.ext import CommandHandler
 
-from http.server import BaseHTTPRequestHandler, HTTPServer
-
 import datetime
-import logging
-import time
 import re
-
-logging.basicConfig(
-    format = '%(asctime)s - %(name)s - %(levelname)s - %(message)s',
-    level = logging.INFO
-    )
 
 class ToastParser(object):
     toastToken = '294460456:AAGYxax3Tply0Zc5Vy1d4E5TADA94dcUtK4'
@@ -88,7 +79,7 @@ class ToastParser(object):
         timeOfDay += minutes*60
         return timeOfDay
 
-    def getDuration(self, arg):
+    def durationFromString(self, arg):
         duration = 0
                     
         for timeChunk in re.findall('\d+[hms]', arg):
@@ -128,7 +119,7 @@ class ToastParser(object):
                     reply("error: multiple duration arguments")
                     return
               
-                duration = self.getDuration(arg)
+                duration = self.durationFromString(arg)
 
         return(dayOffset, timeOfDay, duration)
 
@@ -138,6 +129,16 @@ class ToastParser(object):
         startEpoch = int(self.startTime.timestamp())
         endEpoch = int(self.endTime.timestamp())
         return startEpoch, endEpoch
+
+    def isToasting(self):
+        epochTimes = self.getEpochTimes()
+        if epochTimes == None: return False
+
+        timestampNow = datetime.datetime.now().timestamp()
+        if epochTimes[0] < timestampNow < epochTimes[1]:
+            return True
+
+        return False        
 
     def getDuration(self):
         times = self.getEpochTimes()
@@ -159,8 +160,6 @@ class ToastParser(object):
             endDate = str(self.endTime)
             endDate = endDate[:endDate.rindex('.')]
             reply += "end: " + endDate + "\n"
-
-            
 
             duration = self.getDuration()
             reply += "duration: %sh %sm %ss" % (
@@ -224,36 +223,3 @@ class ToastParser(object):
         #text += "start: " + str(self.startTime) + "\n"
         #self.reply(text)
         self.showToast()
-
-
-# HTTPRequestHandler class
-class testHTTPServer_RequestHandler(BaseHTTPRequestHandler):
-    def do_GET(self):
-        # Send response status code
-        self.send_response(200)
-
-        # Send headers
-        self.send_header('Content-type','text/html')
-        self.end_headers()
-
-        # Send message back to client
-        epochTimes = toaster.getEpochTimes()
-        if epochTimes != None:
-            message = "on"
-        else:
-            message = "off"
-        
-        # Write content as utf-8 data
-        self.wfile.write(bytes(message, "utf8"))
-        print(message)
-        return
-
-toaster = ToastParser()
-                      
-server_address = ('', 8080)
-httpd = HTTPServer(server_address, testHTTPServer_RequestHandler)
-print('running server...')
-httpd.serve_forever()
-
-
-
