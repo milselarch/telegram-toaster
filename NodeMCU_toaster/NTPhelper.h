@@ -39,7 +39,7 @@ WiFiUDP udp;
 class NTPhelper {
 private:
     unsigned long lastNtpRequest = -1;
-    unsigned int intervalMs = 10000;
+    unsigned long intervalMs = 3600 * 1000;
 
 public:
     NTPhelper() {

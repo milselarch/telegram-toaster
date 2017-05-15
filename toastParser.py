@@ -37,15 +37,24 @@ class ToastParser(object):
         self.endTime = None
         updater.start_polling()
 
+    def timeStampNow(self):
+        timestamp = datetime.datetime.utcnow()
+        timestamp += datetime.timedelta(hours=8)
+        return timestamp
+
     def setTimeStampNow(self):
-        self.timestamp = datetime.datetime.today()
+        # get UTC+0 time at this point
+        self.timestamp = self.timeStampNow()
 
     def updateToastInfo(self):
+        pass
+        """
         if self.endTime != None:
-            nowStamp = datetime.datetime.today().timestamp()
+            nowStamp = self.timeStampNow().timestamp()
             if nowStamp > self.endTime.timestamp():
                 self.startTime = None
                 self.endTime = None
+        """
 
     def reply(self, message):
         self.bot.sendMessage(

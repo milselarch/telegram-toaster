@@ -9,6 +9,7 @@
 
 #include "NTPhelper.h"
 #include "toast_status.h"
+#include "requests.h"
 
 #include <LiquidCrystal_I2C.h>
 
@@ -17,6 +18,8 @@ const int untoastDegree = 180;
 
 ToastState state;
 TimeKeeper timeTracker;
+Requester requester;
+
 LiquidCrystal_I2C lcd(0x27, 16, 2);
 WiFiManager wifiManager;
 Servo myservo;
@@ -38,41 +41,39 @@ void setup() {
 	IPAddress ip = WiFi.localIP();
 	Serial.println(ip);
 
-    timeTracker.setOffset(8*3600);  //UTC+8
+    //timeTracker.setOffset(8*3600);  //UTC+8
     while (!timeTracker.sync()) { delay(1000); }
 }
 
 
 void loop () {
-	HTTPClient http;
-    http.begin("http://192.168.1.151:8080/"); //HTTP
-
-    // start connection and send HTTP header
-    int httpCode = http.GET();
-	Serial.printf("[HTTP] GET... code: %d\n", httpCode);
-	
-    // httpCode will be negative on error
-    if (httpCode > 0) {
-        // HTTP header has been send and Server response header has been handled
-
-        // file found at server
-        if (httpCode == HTTP_CODE_OK) {
-            String payload = http.getString();
-
-            if (payload == "off") {
-                myservo.write(untoastDegree);
-            } else {
-                state.extract(payload);
-                myservo.write(toastDegree);              
-            }
-        }
+    if (requester.timedRequest()) {
+        String payload = requester.response;
         
-    } else {
-        Serial.printf("[HTTP] GET... failed, error: %s\n", http.errorToString(httpCode).c_str());
+    	if (payload == "off") {
+            state.reset();
+        } else {
+            state.extract(payload);
+        }
     }
 
-    http.end();
-    delay(5000);
+    if (state.hasPendingToast()) {
+        time_t timeNow = now();
+        Serial.println("secs now: " + String(timeNow));
+        
+        if (state.isToasting(timeNow)) {
+            myservo.write(toastDegree);
+            Serial.println("secs since start: " + String(state.sinceStart(timeNow)));
+        } else {
+            Serial.println("not toasting as of now"); //state.reset();    
+        }
+         
+    } else {
+        myservo.write(untoastDegree);
+    }
+
+    timeTracker.sync();
+    delay(500);
 }
 
 
