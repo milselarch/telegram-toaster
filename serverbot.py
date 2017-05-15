@@ -22,9 +22,11 @@ class testHTTPServer_RequestHandler(BaseHTTPRequestHandler):
         self.send_header('Content-type','text/html')
         self.end_headers()
 
-        # Send message back to client
+        # Send message back to client        
         if toaster.isToasting():
-            message = "on"
+            message = ' '.join([
+                str(timestamp) for timestamp in toaster.getEpochTimes()
+                ])
         else:
             message = "off"
         

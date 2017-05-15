@@ -8,12 +8,14 @@
 #include <WiFiManager.h>         // https://github.com/tzapu/WiFiManager WiFi Configuration Magic
 
 #include "NTPhelper.h"
+#include "toast_status.h"
 
 #include <LiquidCrystal_I2C.h>
 
 const int toastDegree = 0;
 const int untoastDegree = 180;
 
+ToastState state;
 TimeKeeper timeTracker;
 LiquidCrystal_I2C lcd(0x27, 16, 2);
 WiFiManager wifiManager;
@@ -42,9 +44,6 @@ void setup() {
 
 
 void loop () {
-    Serial.print("time_t now = ");
-    Serial.println(String(now()));
-    
 	HTTPClient http;
     http.begin("http://192.168.1.151:8080/"); //HTTP
 
@@ -60,10 +59,11 @@ void loop () {
         if (httpCode == HTTP_CODE_OK) {
             String payload = http.getString();
 
-            if (payload == "on") {
-                myservo.write(toastDegree);
-            } else if (payload == "off") {
-                myservo.write(untoastDegree);              
+            if (payload == "off") {
+                myservo.write(untoastDegree);
+            } else {
+                state.extract(payload);
+                myservo.write(toastDegree);              
             }
         }
         
@@ -72,7 +72,7 @@ void loop () {
     }
 
     http.end();
-    delay(2000);
+    delay(5000);
 }
 
 

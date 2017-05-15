@@ -18,10 +18,10 @@ class ToastParser(object):
             'cancel', self.cancel
             ))
         dispatcher.add_handler(CommandHandler(
-            'show', self.show
+            'untoast', self.cancel
             ))
         dispatcher.add_handler(CommandHandler(
-            'help', self.help
+            'show', self.show
             ))
 
         self.dayList = (
@@ -37,21 +37,16 @@ class ToastParser(object):
         self.endTime = None
         updater.start_polling()
 
-    def generateTimestamp(self):
+    def setTimeStampNow(self):
         self.timestamp = datetime.datetime.today()
 
-    def help(self, message):
-        commands = """
-        list of commands:
-        ---------------------
-        /toast [date] [time] [duration] - start toasting
-        /cancel - stop toasting
-        /show - show current toast info
-        """
-        self.bot.sendMessage(
-            chat_id = self.chat_id, text = message
-            )
-        
+    def updateToastInfo(self):
+        if self.endTime != None:
+            nowStamp = datetime.datetime.today().timestamp()
+            if nowStamp > self.endTime.timestamp():
+                self.startTime = None
+                self.endTime = None
+
     def reply(self, message):
         self.bot.sendMessage(
             chat_id = self.chat_id, text = message
@@ -141,11 +136,12 @@ class ToastParser(object):
     def getEpochTimes(self):
         if self.startTime == None: return
         
-        startEpoch = int(self.startTime.timestamp())
-        endEpoch = int(self.endTime.timestamp())
-        return startEpoch, endEpoch
+        startStamp = int(self.startTime.timestamp())
+        endStamp = int(self.endTime.timestamp())
+        return startStamp, endStamp
 
     def isToasting(self):
+        self.updateToastInfo()
         epochTimes = self.getEpochTimes()
         if epochTimes == None: return False
 
@@ -164,6 +160,8 @@ class ToastParser(object):
             return 0
 
     def showToast(self):
+        self.updateToastInfo()
+        
         if self.startTime == None:
             self.reply("No toast currently set :/")
         else:
@@ -205,7 +203,7 @@ class ToastParser(object):
         self.chat_id = update.message.chat_id
         self.bot = bot
 
-        self.generateTimestamp()
+        self.setTimeStampNow()
         # fill in defaults
         values = self.extractValues(args)
         if values == None: return
