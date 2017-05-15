@@ -20,6 +20,9 @@ class ToastParser(object):
         dispatcher.add_handler(CommandHandler(
             'show', self.show
             ))
+        dispatcher.add_handler(CommandHandler(
+            'help', self.help
+            ))
 
         self.dayList = (
             'mon','tues','wed','thurs','fri','sat','sun',
@@ -36,6 +39,18 @@ class ToastParser(object):
 
     def generateTimestamp(self):
         self.timestamp = datetime.datetime.today()
+
+    def help(self, message):
+        commands = """
+        list of commands:
+        ---------------------
+        /toast [date] [time] [duration] - start toasting
+        /cancel - stop toasting
+        /show - show current toast info
+        """
+        self.bot.sendMessage(
+            chat_id = self.chat_id, text = message
+            )
         
     def reply(self, message):
         self.bot.sendMessage(

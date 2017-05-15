@@ -7,11 +7,14 @@
 #include <ESP8266WebServer.h>    // Local WebServer used to serve the configuration portal
 #include <WiFiManager.h>         // https://github.com/tzapu/WiFiManager WiFi Configuration Magic
 
+#include "NTPhelper.h"
+
 #include <LiquidCrystal_I2C.h>
 
 const int toastDegree = 0;
 const int untoastDegree = 180;
 
+TimeKeeper timeTracker;
 LiquidCrystal_I2C lcd(0x27, 16, 2);
 WiFiManager wifiManager;
 Servo myservo;
@@ -32,10 +35,16 @@ void setup() {
 	Serial.println("IP address: ");
 	IPAddress ip = WiFi.localIP();
 	Serial.println(ip);
+
+    timeTracker.setOffset(8*3600);  //UTC+8
+    while (!timeTracker.sync()) { delay(1000); }
 }
 
 
 void loop () {
+    Serial.print("time_t now = ");
+    Serial.println(String(now()));
+    
 	HTTPClient http;
     http.begin("http://192.168.1.151:8080/"); //HTTP
 
@@ -57,12 +66,12 @@ void loop () {
                 myservo.write(untoastDegree);              
             }
         }
+        
     } else {
         Serial.printf("[HTTP] GET... failed, error: %s\n", http.errorToString(httpCode).c_str());
     }
 
-    http.end();	
-
+    http.end();
     delay(2000);
 }
 
