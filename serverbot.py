@@ -23,7 +23,7 @@ class testHTTPServer_RequestHandler(BaseHTTPRequestHandler):
         self.end_headers()
 
         # Send message back to client        
-        if toaster.isToasting():
+        if toaster.hasPendingToast():
             message = ' '.join([
                 str(timestamp) for timestamp in toaster.getEpochTimes()
                 ])

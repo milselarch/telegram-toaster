@@ -2,6 +2,7 @@ from telegram.ext import Updater
 from telegram.ext import CommandHandler
 
 import datetime
+from datetime import timezone
 import re
 
 class ToastParser(object):
@@ -31,7 +32,7 @@ class ToastParser(object):
         
         self.bot = None
         self.chat_id = None
-        self.timestamp = self.utcStart
+        self.timestamp = self.timeStampNow() #self.utcStart
     
         self.startTime = None
         self.endTime = None
@@ -76,8 +77,6 @@ class ToastParser(object):
     def getTimeOfDay(self, arg):
         timeOfDay = 0
         hours,minutes = 0,0
-        meridiem = arg[-2:]
-        if meridiem == 'pm': hours += 12
         timeNum = arg[:-2]
 
         if '.' in timeNum:
@@ -87,10 +86,14 @@ class ToastParser(object):
         else:
             hours = int(timeNum)
 
+        meridiem = arg[-2:]
+        print("MER", meridiem)
+        if meridiem == 'pm': hours += 12
+
         if minutes > 59:
             reply("cannot have %s minutes" % minutes)
             return
-        if hours > 12:
+        if hours > 23:
             reply("cannot have %s hours" % hours)
             return
         
@@ -144,9 +147,14 @@ class ToastParser(object):
 
     def getEpochTimes(self):
         if self.startTime == None: return
-        
-        startStamp = int(self.startTime.timestamp())
-        endStamp = int(self.endTime.timestamp())
+
+        #datetime will assume local timezone
+        startStamp = int(
+            self.startTime.replace(tzinfo=timezone.utc).timestamp()
+            )
+        endStamp = int(
+            self.endTime.replace(tzinfo=timezone.utc).timestamp()
+            )
         return startStamp, endStamp
 
     def isToasting(self):
@@ -158,7 +166,13 @@ class ToastParser(object):
         if epochTimes[0] < timestampNow < epochTimes[1]:
             return True
 
-        return False        
+        return False
+
+    def hasPendingToast(self):
+        self.updateToastInfo()
+        epochTimes = self.getEpochTimes()
+        if epochTimes == None: return False
+        else: return True
 
     def getDuration(self):
         times = self.getEpochTimes()
@@ -224,6 +238,7 @@ class ToastParser(object):
         )
 
         dayOffset, timeOfDay, duration = values
+        print("DO %s TD %s DU %s" % (dayOffset, timeOfDay, duration))
         if dayOffset == None: dayOffset = 0
         if timeOfDay == None: timeOfDay = nowDaytime
         if duration == None: duration = 1800

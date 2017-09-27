@@ -169,7 +169,7 @@ public:
         return false;
     }
 
-    time_t getDayEpoch(time_t t) {
+    time_t getDayEpoch(const time_t t) {
         return t - hour(t)*3600 - minute(t)*60 - second(t); 
     }
 
@@ -182,5 +182,15 @@ public:
         Serial.println("minute: " + String(minute(t)));
         Serial.println("second: " + String(second(t)));
     }
+
+    String monthName(const unsigned int monthIndex) {
+        String monthNames[] = {
+            "Jan", "Feb", "Mar", "Apr", "May", "Jun",
+            "Jul", "Aug", "Sep", "Oct", "Nov", "Dec"
+        };
+        
+        return monthNames[monthIndex-1];
+    }
 };
+
 

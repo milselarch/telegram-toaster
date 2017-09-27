@@ -1,7 +1,7 @@
-#include <Servo.h>
-
 #include <ESP8266HTTPClient.h>
 #include <ESP8266WiFi.h>
+
+#include <LiquidCrystal_I2C.h>
 
 #include <DNSServer.h>         // Local DNS Server used for redirecting all requests to the configuration portal
 #include <ESP8266WebServer.h>    // Local WebServer used to serve the configuration portal
@@ -10,41 +10,54 @@
 #include "NTPhelper.h"
 #include "toast_status.h"
 #include "requests.h"
+#include "toaster.h"
 
-#include <LiquidCrystal_I2C.h>
-
-const int toastDegree = 0;
-const int untoastDegree = 180;
+LiquidCrystal_I2C lcd(0x27, 16, 2);
+WiFiManager wifiManager;
 
 ToastState state;
 TimeKeeper timeTracker;
 Requester requester;
+Toaster toaster;
 
-LiquidCrystal_I2C lcd(0x27, 16, 2);
-WiFiManager wifiManager;
-Servo myservo;
+
+void lcdWrite(String line1, String line2) {
+    lcd.setCursor(0, 0);
+    lcd.print(line1 + "                      ");
+    lcd.setCursor(0, 1);
+    lcd.print(line2 + "                      ");
+}
+void lcdWrite(String line) {
+    lcdWrite(line, "");
+}
 
 void setup() {
 	pinMode(D7, OUTPUT);
+    
+    lcd.init();
+    lcdWrite("TOASTER BOOT");
+    delay(500);
+    
 	Serial.begin(115200);
-    // Servo is HS-5945MG, pulse width range is different
-    myservo.attach(D3, 900, 2100);
-	delay(3000);
-
 	// attempt to connect to Wifi network:
     Serial.print("Connecting Wifi: ");
     wifiManager.autoConnect("AutoConnectAP");
-	
+
+    lcdWrite("WIFI INIT");
+    delay(1000);
+    
 	Serial.println("");
 	Serial.println("WiFi connected");
 	Serial.println("IP address: ");
 	IPAddress ip = WiFi.localIP();
 	Serial.println(ip);
+ 
+    lcdWrite("IP ADDRESS", ip.toString());
+    delay(500);
 
-    //timeTracker.setOffset(8*3600);  //UTC+8
+    timeTracker.setOffset(8*3600); //UTC+8 singapore
     while (!timeTracker.sync()) { delay(1000); }
 }
-
 
 void loop () {
     if (requester.timedRequest()) {
@@ -57,23 +70,53 @@ void loop () {
         }
     }
 
-    if (state.hasPendingToast()) {
-        time_t timeNow = now();
+    time_t timeNow = now();
+    
+    if (state.hasPendingToast(timeNow)) {
         Serial.println("secs now: " + String(timeNow));
         
         if (state.isToasting(timeNow)) {
-            myservo.write(toastDegree);
-            Serial.println("secs since start: " + String(state.sinceStart(timeNow)));
+            lcdWrite(
+                state.getProgress(timeNow) + " toasted!",
+                String(state.sinceStart(timeNow)) + "s/"
+                + String(state.tillEnd(timeNow)) + "s"
+                );
+            toaster.toast();
+
         } else {
-            Serial.println("not toasting as of now"); //state.reset();    
+            Serial.println("not toasting as of now"); //state.reset();
+            time_t wait = state.tillStart(timeNow);
+            time_t duration = state.duration();
+        
+            lcdWrite(
+                String(duration/3600) + "h"
+                + String((duration%3600)/60) + "m"
+                + String(duration%60) + "s"
+                + " toast:",
+                
+                "in " +
+                String(wait/3600/24) + "d " 
+                + String((wait%(3600*24))/3600) + "h"
+                + String((wait%(3600))/60) + "m"
+                + String(wait%60) + "s"
+                );
         }
          
     } else {
-        myservo.write(untoastDegree);
+        lcdWrite(
+            "not toasting",
+            String(day(timeNow)) + " " 
+            + timeTracker.monthName(month(timeNow)) + " "
+            + String(hour(timeNow)) + ":" 
+            + String(minute(timeNow)) + ":" 
+            + String(second(timeNow))
+            );
+                
+        toaster.untoast();
     }
 
     timeTracker.sync();
-    delay(500);
+    delay(100);
 }
 
 

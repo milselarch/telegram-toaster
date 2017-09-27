@@ -26,6 +26,16 @@ class ToastState {
         Serial.println(String(startTime)+" "+String(endTime));
     }
 
+    time_t duration() {
+        return this->endTime - this->startTime;    
+    }
+
+    String getProgress(time_t timeNow) {
+        float progress = (float(this->sinceStart(timeNow))/float(this->duration()));
+        String progressString = String((round(progress*100.0)/100.0)*100.0) + "%";
+        return progressString;    
+    }
+
     time_t tillStart(time_t timeNow) {
         return this->startTime - timeNow;
     }
@@ -50,8 +60,8 @@ class ToastState {
         return (timeNow > this->endTime);    
     }
 
-    bool hasPendingToast() {
-        return this->startTime != -1;
+    bool hasPendingToast(time_t timeNow) {
+        return this->endTime >= timeNow and this->endTime != -1;
     }
     
     void reset() {
