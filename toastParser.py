@@ -3,10 +3,13 @@ from telegram.ext import CommandHandler
 
 import datetime
 from datetime import timezone
+import config
 import re
 
+configInfo = config.config()
+
 class ToastParser(object):
-    toastToken = '294460456:AAGYxax3Tply0Zc5Vy1d4E5TADA94dcUtK4'
+    toastToken = configInfo["botToken"]
     
     def __init__(self):
         self.utcStart = datetime.datetime.utcfromtimestamp(0)
