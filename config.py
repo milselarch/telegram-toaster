@@ -18,18 +18,16 @@ class config(object):
         except FileNotFoundError:
             self.makeDefaults()
 
-
     def __getitem__(self, item):
         return self.data[item]
 
     def update(self):
         try:
             self.open()
-        except FileNotFoundError:
+        except FileNotFoundError as e:
             print("ERR: CONFIG FILE NOT FOUND")
-
+            
         for key in self.data:
-            #print(self.data)
             current = self.data[key]
 
             if current == None:
