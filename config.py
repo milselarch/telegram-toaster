@@ -47,6 +47,8 @@ class config(object):
         fileData = open(self.filename).read()
         fileData = fileData.replace('\t', ' ' * 4)
         data = yaml.load(fileData)
+        if data == None: return
+        
         for key in data:
             if key in self.data:
                 self.data[key] = data[key]
