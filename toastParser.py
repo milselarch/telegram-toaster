@@ -247,9 +247,9 @@ class ToastParser(object):
         elif dayOffset < 0: dayOffset += 7
 
         self.startTime = self.timestamp.replace(
-            hour = timeOfDay//3600,
-            minute = (timeOfDay//60)%60,
-            second = timeOfDay%60,
+            hour = timeOfDay // 3600,
+            minute = (timeOfDay // 60) % 60,
+            second = timeOfDay % 60,
             )
         
         self.startTime += datetime.timedelta(days = dayOffset)

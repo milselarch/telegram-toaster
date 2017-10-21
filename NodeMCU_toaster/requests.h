@@ -1,3 +1,5 @@
+#include "settings.h"
+
 class Requester {
     public:
     unsigned long lastRequest = -1;
@@ -6,7 +8,8 @@ class Requester {
     
     bool request() {
         HTTPClient http;
-        http.begin("http://192.168.1.151:8080/"); //HTTP
+        // BOT_SERVER is a variable from settings.h
+        http.begin(BOT_SERVER); //HTTP
     
         // start connection and send HTTP header
         int httpCode = http.GET();

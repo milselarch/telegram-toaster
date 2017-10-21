@@ -32,7 +32,7 @@ class ToastState {
 
     String getProgress(time_t timeNow) {
         float progress = (float(this->sinceStart(timeNow))/float(this->duration()));
-        String progressString = String((round(progress*100.0)/100.0)*100.0) + "%";
+        String progressString = String(progress*100) + "%";
         return progressString;    
     }
 

@@ -116,7 +116,7 @@ void loop () {
     }
 
     timeTracker.sync();
-    delay(100);
+    delay(200);
 }
 
 
