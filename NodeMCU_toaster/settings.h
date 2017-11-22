@@ -1,1 +1,0 @@
-String BOT_SERVER = "YOUR-BOT-SERVER-IP";

@@ -19,9 +19,10 @@ public:
     }
 
     void toast() {
-        prevDegree = toastDegree;
-        myservo.write(toastDegree);
-        digitalWrite(SHDN_PIN, HIGH);
+        if (toastDegree != prevDegree) {
+            prevDegree = toastDegree;
+            this->turnThenOff(toastDegree);
+        }
     }
 
     void untoast() {
